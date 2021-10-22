@@ -1,3 +1,4 @@
+import glob
 import cv2
 import Functions as f
 import numpy as np
@@ -34,8 +35,16 @@ def click_event(event, x, y, flags, param):
             coordinateList.append((x, y))
 
 if __name__ == '__main__':
-    imgOriginal = cv2.imread('Map Cragmaw Cave.jpg')
-    maskOriginal = cv2.imread('Mask.png')
+    mapNames = []
+    fileCounter = 0
+    for file in glob.glob("Maps\*"):
+        mapNames.append(file)
+        print(str(fileCounter) + ": " + str(file)[5:])
+    print("")
+    chosenMap = int(input("Choose your map by number + enter: "))
+
+
+    imgOriginal = cv2.imread(mapNames[chosenMap])
     dimX = int(imgOriginal.shape[1] * scaleSize)
     dimY = int(imgOriginal.shape[0] * scaleSize)
     dim = (dimX, dimY)
