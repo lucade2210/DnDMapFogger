@@ -15,7 +15,7 @@ coordinateList = []
 #Will check and execute what to do on click in the current situation
 def click_event(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
-        global imgBase, imgBaseDark, fogMask, imgFog, imgDrawn, imgViewer, imgDrawer, coordinateList, shapeList
+        global imgBase, imgBaseDark, fogMask, imgDrawn, imgViewer, imgDrawer, coordinateList, shapeList
 
         #If coordinatelist has values, than we already have a starting point
         #So start drawing lines or end the shape if the start position is click again
@@ -26,10 +26,8 @@ def click_event(event, x, y, flags, param):
             # If so, then we draw the shape in the fogmask and overlay this mask on both the viewer and drawer layers
             if f.checkCoordinatesWithStart(x, y, coordinateList, clickRange):
                 f.drawShape(fogMask, coordinateList)
-                imgViewer = f.overlayMask(fogMask, imgFog, imgBase)
                 imgDrawer = f.overlayMask(fogMask, imgBaseDark, imgBase)
                 imgDrawn = imgDrawer.copy()
-                cv2.imshow('viewer', imgViewer)
                 cv2.imshow('drawer', imgDrawer)
                 shapeList.append(coordinateList[:])
                 coordinateList.clear()
@@ -87,7 +85,6 @@ if __name__ == '__main__':
     #Viewer -> imgFog (mask=0) : imgBase (mask=1)
     #Drawer -> imgBaseDark (mask=0) : imgBase (mask=1)
 
-
     cv2.namedWindow('viewer', cv2.WINDOW_FREERATIO)
     cv2.namedWindow('drawer', cv2.WINDOW_FREERATIO)
     cv2.moveWindow('viewer',1000,500)
@@ -97,6 +94,30 @@ if __name__ == '__main__':
     cv2.imshow('drawer', imgDrawer)
     cv2.setMouseCallback('drawer', click_event)
 
-    cv2.waitKey(0)
+    while True:
+
+        video = cv2.VideoCapture("VideoOverlays\smoke02.mp4")
+        closeCommand = False
+
+        while True:
+            ret, imgVid = video.read()
+            if ret == True:
+                imgVid = cv2.resize(imgVid, dim, interpolation = cv2.INTER_AREA)
+                result = cv2.addWeighted(imgFog, 0.5, imgVid, 0.5, 0)
+                imgViewer = f.overlayMask(fogMask, result, imgBase)
+
+                cv2.imshow('viewer', imgViewer)
+
+
+                if(cv2.waitKey(1) == 27): #esc
+                    closeCommand = True
+                    break
+            else:
+                break
+        
+        if closeCommand == True:
+            break
+
+    video.release()
     cv2.destroyAllWindows()
 
