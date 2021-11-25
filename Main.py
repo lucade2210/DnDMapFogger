@@ -1,123 +1,112 @@
 import glob
 import cv2
+from numpy.core.fromnumeric import size
 import Functions as f
+import Controls as c
 import numpy as np
-import random
-import os
+import cupy as cp
+import time as t
+
+from ImageSetArrays import ImageSetArrays
 
 #Base variables and array declaration
 clickRange = 10
 imageScale = 1
-shapeList = []
-coordinateList = []
+resolutions = (("1080p", (1920,1080)),("1440p", (2560,1440)),("4k", (3840,2160)))
+chosenResolution = 0
+imageSets = []
+chosenMapCursor = 0
+closingBoolean = False
 
-#Main Function for the on mouse click event
-#Will check and execute what to do on click in the current situation
-def click_event(event, x, y, flags, param):
-    if event == cv2.EVENT_LBUTTONDOWN:
-        global imgBase, imgBaseDark, fogMask, imgDrawn, imgViewer, imgDrawer, coordinateList, shapeList
+drawingType = 1 # 1  = PolyLine, -1 = Dragging Circle
+isDrawing = False
 
-        #If coordinatelist has values, than we already have a starting point
-        #So start drawing lines or end the shape if the start position is click again
-        if len(coordinateList) >= 1:
-            f.drawLine(imgDrawn, x, y, coordinateList)
-
-            #Check if the click coordinates are the same as the start position
-            # If so, then we draw the shape in the fogmask and overlay this mask on both the viewer and drawer layers
-            if f.checkCoordinatesWithStart(x, y, coordinateList, clickRange):
-                f.drawShape(fogMask, coordinateList)
-                imgDrawer = f.overlayMask(fogMask, imgBaseDark, imgBase)
-                imgDrawn = imgDrawer.copy()
-                cv2.imshow('drawer', imgDrawer)
-                shapeList.append(coordinateList[:])
-                coordinateList.clear()
-
-            #If not clicked on starting position, then just simply show the newly drawn line on the drawer layer
-            else:
-                cv2.imshow('drawer', imgDrawn)
-                coordinateList.append((x, y))
-
-        #This else is reached when it is the first click of a new shape, making the starting position
-        else:
-            f.drawText(imgDrawn, x, y)
-            f.drawDot(imgDrawn, x, y, clickRange)
-            cv2.imshow('drawer', imgDrawn)
-            coordinateList.append((x, y))
-        
 if __name__ == '__main__':
 
+    #Choose base resolution and set dims
+    fileCounter = 0
+    for res in resolutions:
+        print(str(fileCounter) + " " + str(res))
+        fileCounter += 1
+    print("")
+    chosenResolution = int(input("Choose the resolution of your viewer display (Integer)"))
+    dim = resolutions[chosenResolution][1]
+    dimString = resolutions[chosenResolution][0]
+    
     #Open all files in the Maps folder and let the user choose one
     mapNames = []
     fileCounter = 0
     for file in glob.glob("Maps\*"):
         mapNames.append(file)
         print(str(fileCounter) + ": " + str(file)[5:])
-        fileCounter = fileCounter + 1
-    print("")
-    chosenMap = int(input("Choose your map by number + enter: "))
+        imageSets.append(ImageSetArrays(dim, mapNames[fileCounter]))
+        fileCounter += 1
 
-    #ImgOriginal = The unedited original image
-    #DimX & DimY are dimensions of the image in pixels
-    imgOriginal = cv2.imread(mapNames[chosenMap])
-    dimX = int(imgOriginal.shape[1] * imageScale)
-    dimY = int(imgOriginal.shape[0] * imageScale)
-    dim = (dimX, dimY)
-
-    #ImgBase will be the unedited fallback image when revealing parts of the map
-    #ImgBaseDark is the darkend version for the drawer window
-    imgBase = cv2.resize(imgOriginal, dim, interpolation = cv2.INTER_AREA)
-    imgBaseDark = cv2.add(imgBase.copy(), np.array([-40.0]))
-
-    #FogMask will remember the drawn shapes in a boolean array
-    #imgFog will be the fog image that is actually used to overlay the base image
-    fogMask = np.zeros((dimY, dimX, 3), np.uint8)
-    randomFile = "Fogs\\" + random.choice(os.listdir("Fogs\\"))
-    imgFog = cv2.resize(cv2.imread(randomFile), dim, interpolation = cv2.INTER_AREA)
-
-    #imgViewer is the compiled image to show in the viewer window
-    #imgdrawer is the compiled image to show in the drawer window
-    #imgDrawn is the temporarily compiled image to show in the drawer window when drawing. Only this layer will show the lines
-    imgViewer = imgFog.copy()
-    imgDrawer = imgBaseDark.copy()
-    imgDrawn = imgDrawer.copy()
-
-    #This is how they will be compiled in the f.overlayMask function
-    #Viewer -> imgFog (mask=0) : imgBase (mask=1)
-    #Drawer -> imgBaseDark (mask=0) : imgBase (mask=1)
 
     cv2.namedWindow('viewer', cv2.WINDOW_FREERATIO)
     cv2.namedWindow('drawer', cv2.WINDOW_FREERATIO)
-    cv2.moveWindow('viewer',1000,500)
-    cv2.moveWindow('drawer',-1920 ,0)
+    cv2.moveWindow('viewer',3000,200)
+    cv2.moveWindow('drawer',0 ,0)
     cv2.setWindowProperty('viewer', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    cv2.imshow('viewer', imgViewer)
-    cv2.imshow('drawer', imgDrawer)
-    cv2.setMouseCallback('drawer', click_event)
+
+    imageSets[chosenMapCursor].reload()
+    param = [imageSets[chosenMapCursor], drawingType, isDrawing]
+    cv2.setMouseCallback('drawer', c.clickPointInDrawer, param)
+
 
     while True:
 
-        video = cv2.VideoCapture("VideoOverlays\smoke02.mp4")
-        closeCommand = False
+        video = cv2.VideoCapture("VideoOverlays\smoke02-" + dimString + ".mp4")
+        closingBoolean = False
 
         while True:
+            startTime = t.time() * 1000
             ret, imgVid = video.read()
             if ret == True:
-                imgVid = cv2.resize(imgVid, dim, interpolation = cv2.INTER_AREA)
-                result = cv2.addWeighted(imgFog, 0.5, imgVid, 0.5, 0)
-                imgViewer = f.overlayMask(fogMask, result, imgBase)
+                
+                imgVid = cp.array(imgVid)
+                
+                imageSets[chosenMapCursor].overlayFogMaskWithViewerVid(imgVid)
+                imageSets[chosenMapCursor].updateViewerImage()
 
-                cv2.imshow('viewer', imgViewer)
+                k = cv2.waitKey(1)
 
+                if k!=-1:
+                    if k==27: # esc = closeCommand = True
+                        closingBoolean = True
+                    elif k==46: # . = next image
+                        chosenMapCursor += 1
+                        if chosenMapCursor == len(imageSets):
+                            chosenMapCursor = 0
+                    elif k==44: # . = previous image
+                        chosenMapCursor -= 1
+                        if chosenMapCursor == -1:
+                            chosenMapCursor = len(imageSets) - 1
+                    elif k==47: # / = switchDrawingType
+                        drawingType *= -1
 
-                if(cv2.waitKey(1) == 27): #esc
-                    closeCommand = True
+                    elif k==114: # r = rotate 180
+                        imageSets[chosenMapCursor].rotate()
+
+                    else:
+                        print(k)
+                    
+                    imageSets[chosenMapCursor].reload()
+                    param = [imageSets[chosenMapCursor], drawingType, isDrawing]
+                    cv2.setMouseCallback('drawer', c.clickPointInDrawer, param)
+
+                
+                if closingBoolean == True:
                     break
+                
             else:
                 break
+            #print(t.time()*1000 - startTime)
         
-        if closeCommand == True:
+        if closingBoolean == True:
             break
 
     video.release()
     cv2.destroyAllWindows()
+    exit()
 
