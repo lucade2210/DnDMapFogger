@@ -11,6 +11,18 @@ def clickPointInDrawer(event, x, y, flags, param):
     imageSetArray = param[0]
     drawingType = param[1]
     isDrawing = param[2]
+    lastPosX = param[3]
+    lastPosY = param[4]
+
+    if event == cv2.EVENT_MOUSEMOVE:
+        if isDrawing == True:
+            if abs(x - lastPosX) > imageSetArray.clickRange*1.5 or abs(y - lastPosY) > imageSetArray.clickRange*1.5:
+                imageSetArray.fogMask = f.drawDot(imageSetArray.fogMask, x, y, imageSetArray.clickRange*5)
+                imageSetArray.imgDrawer = f.overlayMask(imageSetArray.fogMask, imageSetArray.imgBaseDark, imageSetArray.imgBase)
+                imageSetArray.resetDrawnImage()
+                imageSetArray.updateDrawerImage()
+                lastPosX = x
+                lastPosY = y
 
     if event == cv2.EVENT_LBUTTONDOWN:
 
@@ -48,21 +60,23 @@ def clickPointInDrawer(event, x, y, flags, param):
         elif drawingType == -1:
             isDrawing = True
             param[2] = True
+            lastPosX = x
+            lastPosY = y
             imageSetArray.fogMask = f.drawDot(imageSetArray.fogMask, x, y, imageSetArray.clickRange*5)
             imageSetArray.imgDrawer = f.overlayMask(imageSetArray.fogMask, imageSetArray.imgBaseDark, imageSetArray.imgBase)
             imageSetArray.resetDrawnImage()
             imageSetArray.updateDrawerImage()
             imageSetArray.updateViewerImage()
 
-    if event == cv2.EVENT_MOUSEMOVE:
-        if isDrawing == True:
-            imageSetArray.fogMask = f.drawDot(imageSetArray.fogMask, x, y, imageSetArray.clickRange*5)
-            imageSetArray.imgDrawer = f.overlayMask(imageSetArray.fogMask, imageSetArray.imgBaseDark, imageSetArray.imgBase)
-            imageSetArray.resetDrawnImage()
-            imageSetArray.updateDrawerImage()
-            #imageSetArray.updateViewerImage()
+    
 
     if event == cv2.EVENT_LBUTTONUP:
         isDrawing = False
         param[2] = False
+
+    param[0] = imageSetArray
+    param[1] = drawingType
+    param[2] = isDrawing
+    param[3] = lastPosX
+    param[4] = lastPosY
 

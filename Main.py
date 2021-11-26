@@ -1,6 +1,5 @@
 import glob
 import cv2
-from numpy.core.fromnumeric import size
 import Functions as f
 import Controls as c
 import numpy as np
@@ -18,8 +17,11 @@ imageSets = []
 chosenMapCursor = 0
 closingBoolean = False
 
+#MouseCallBack Params
 drawingType = 1 # 1  = PolyLine, -1 = Dragging Circle
 isDrawing = False
+lastPosX = 0
+lastPosY = 0
 
 if __name__ == '__main__':
 
@@ -50,7 +52,7 @@ if __name__ == '__main__':
     cv2.setWindowProperty('viewer', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     imageSets[chosenMapCursor].reload()
-    param = [imageSets[chosenMapCursor], drawingType, isDrawing]
+    param = [imageSets[chosenMapCursor], drawingType, isDrawing, lastPosX, lastPosY]
     cv2.setMouseCallback('drawer', c.clickPointInDrawer, param)
 
 
@@ -92,7 +94,7 @@ if __name__ == '__main__':
                         print(k)
                     
                     imageSets[chosenMapCursor].reload()
-                    param = [imageSets[chosenMapCursor], drawingType, isDrawing]
+                    param = [imageSets[chosenMapCursor], drawingType, isDrawing, lastPosX, lastPosY]
                     cv2.setMouseCallback('drawer', c.clickPointInDrawer, param)
 
                 
