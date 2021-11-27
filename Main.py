@@ -90,6 +90,9 @@ if __name__ == '__main__':
                     elif k==114: # r = rotate 180
                         imageSets[chosenMapCursor].rotate()
 
+                    elif k==113: # q = fade back to full fog
+                        imageSets[chosenMapCursor].resetFog()
+
                     else:
                         print(k)
                     

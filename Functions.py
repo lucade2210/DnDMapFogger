@@ -25,6 +25,9 @@ def checkCoordinatesWithStart(x, y, coordinateList, clickRange):
 def overlayMask(mask, imgOnZero, imgOnOne):
     return cp.where(mask, imgOnOne, imgOnZero)
 
+def overlayMaskWeighted(mask, imgOnZero, imgOnOne):
+    return np.around(mask * imgOnOne + (1-mask) * imgOnZero,0)
+
 def overlayMaskRaw(mask, imgOnZero, imgOnOne):
     return cp.asnumpy(cp.where(cp.array(mask), cp.array(imgOnOne), cp.array(imgOnZero)))
 
