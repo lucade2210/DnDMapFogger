@@ -20,7 +20,6 @@ class ImageSetArrays:
         self.imgBase = cp.array(self.imgBase)
         self.imgBaseDark = cp.array(self.imgBaseDark)
 
-        #self.fogMask = cp.full((self.dimY, self.dimX, 1), 0.5) #masking shape arrays
         self.fogMask = cp.zeros((self.dimY, self.dimX, 1), cp.uint8) #masking shape arrays
         randomFile = "Fogs\\" + random.choice(os.listdir("Fogs\\"))
         self.imgFog = cp.array(cv2.resize(cv2.imread(randomFile), dim, interpolation = cv2.INTER_AREA)) #fog image
@@ -40,7 +39,6 @@ class ImageSetArrays:
         self.imgViewer[5,1250:1260,0] = 255
         cv2.imshow('viewer', cp.asnumpy(self.imgViewer))
         if self.counter == 100:
-            print(self.imgViewer[0,1250,0].dtype)
             self.counter = 0
         self.counter += 2
 
@@ -62,10 +60,10 @@ class ImageSetArrays:
         self.updateViewerImage()
     
     def rotate(self):
-        self.imgOriginal = cp.array(cv2.rotate(self.imgOriginal, cv2.ROTATE_180))
+        self.imgOriginal = cv2.rotate(self.imgOriginal, cv2.ROTATE_180)
         self.imgBase = cp.array(cv2.rotate(cp.asnumpy(self.imgBase), cv2.ROTATE_180))
         self.imgBaseDark = cp.array(cv2.rotate(cp.asnumpy(self.imgBaseDark), cv2.ROTATE_180))
-        self.fogMask = cp.array(cv2.rotate(cp.asnumpy(self.fogMask), cv2.ROTATE_180))
+        self.fogMask = cp.rot90(self.fogMask,2)
         self.imgFog = cp.array(cv2.rotate(cp.asnumpy(self.imgFog), cv2.ROTATE_180))
 
         self.imgViewer = cp.array(cv2.rotate(cp.asnumpy(self.imgViewer), cv2.ROTATE_180))

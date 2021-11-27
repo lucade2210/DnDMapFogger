@@ -5,6 +5,7 @@ import Controls as c
 import numpy as np
 import cupy as cp
 import time as t
+import cProfile
 
 from ImageSetArrays import ImageSetArrays
 
