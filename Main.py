@@ -9,6 +9,9 @@ import cProfile
 
 from ImageSetArrays import ImageSetArrays
 
+location = 'G:\My Drive\D&D\The Double Crescent\Session #2\Maps\*'
+#location = ''
+
 #Base variables and array declaration
 clickRange = 10
 imageScale = 1
@@ -39,7 +42,7 @@ if __name__ == '__main__':
     #Open all files in the Maps folder and let the user choose one
     mapNames = []
     fileCounter = 0
-    for file in glob.glob("G:\My Drive\D&D\The Double Crescent\Session #2\Maps\*"):
+    for file in glob.glob(location):
         mapNames.append(file)
         print(str(fileCounter) + ": " + str(file)[5:])
         imageSets.append(ImageSetArrays(dim, mapNames[fileCounter]))
