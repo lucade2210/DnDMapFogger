@@ -62,7 +62,6 @@ class ImageSetArrays:
             self.panningCursor[1] = max(0, min(self.dimXOriginal-self.dimXViewport,self.panningCursor[1]-shift))
         if direction == "right":
             self.panningCursor[1] = max(0, min(self.dimXOriginal-self.dimXViewport,self.panningCursor[1]+shift))
-        print(self.panningCursor)
 
         self.overlayImageDrawer()
         self.resetDrawnImage()
