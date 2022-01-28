@@ -1,3 +1,5 @@
+from pydoc import ispackage
+from re import L
 import cv2
 import numpy as np
 import cupy as cp
@@ -9,34 +11,69 @@ class ImageSetArrays:
 
     def __init__(self, dim, imagePath):
         self.counter = 100
-        self.dim = dim
-        self.dimX = dim[0]
-        self.dimY = dim[1]
-        self.clickRange = round(self.dimX / 150)
-
+        self.dimViewport = dim
+        self.dimXViewport = self.dimViewport[0]
+        self.dimYViewport = self.dimViewport[1]
+        self.clickRange = round(self.dimXViewport / 150)
+        
+        self.isPannable = "pan" in imagePath
         self.imgOriginal = cv2.imread(imagePath) #OG unedited image
-        self.imgBase = cv2.resize(self.imgOriginal, dim, interpolation = cv2.INTER_AREA) #resized image
+        
+        self.dimYOriginal = self.imgOriginal.shape[0]
+        self.dimXOriginal = self.imgOriginal.shape[1]
+        self.dimOriginal = (self.dimXOriginal, self.dimYOriginal)
+        self.panningCursor = [0,0] #Y,X
+
+        if not self.isPannable:
+            self.dimYOriginal = self.dimYViewport
+            self.dimXOriginal = self.dimXViewport
+            self.dimOriginal = self.dimViewport
+
+        self.imgBase = cv2.resize(self.imgOriginal, self.dimOriginal, interpolation = cv2.INTER_AREA) #resized image
         self.imgBaseDark = cv2.add(self.imgBase.copy(), np.array([-40.0])) #darkend image
         self.imgBase = cp.array(self.imgBase)
         self.imgBaseDark = cp.array(self.imgBaseDark)
 
-        self.fogMask = cp.zeros((self.dimY, self.dimX, 1), cp.uint8) #masking shape arrays
+        self.fogMask = cp.zeros((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
         randomFile = "Fogs\\" + random.choice(os.listdir("Fogs\\"))
-        self.imgFog = cp.array(cv2.resize(cv2.imread(randomFile), dim, interpolation = cv2.INTER_AREA)) #fog image
+        self.imgFog = cp.array(cv2.resize(cv2.imread(randomFile), self.dimViewport, interpolation = cv2.INTER_AREA)) #fog image
 
 
         self.imgViewer = self.imgFog.copy() #combined image for viewer
-        self.imgDrawer = self.imgBaseDark.copy() #combined image for drawer
+        self.imgDrawer = self.imgBaseDark[self.panningCursor[0]:self.panningCursor[0]+self.dimYViewport,self.panningCursor[1]:self.panningCursor[1]+self.dimXViewport,:].copy() #combined image for drawer
         self.imgDrawn = self.imgDrawer.copy() #temp image for drawer with drawn lines
+        #print(self.imgBase.shape)
+        #print(self.imgBaseDark.shape)
+        #print(self.fogMask.shape)
+        #print(self.imgFog.shape)
+        #print(self.imgDrawer.shape)
 
         self.coordinateList = []
+        self.coordinateListDrawer = []
         self.resetFogPercentile = 100
+
+    def setPanningCursor(self,direction):
+        shift = 100
+        if direction == "up":
+            self.panningCursor[0] = max(0, min(self.dimYOriginal-self.dimYViewport,self.panningCursor[0]-shift))
+        if direction == "down":
+            self.panningCursor[0] = max(0, min(self.dimYOriginal-self.dimYViewport,self.panningCursor[0]+shift))
+        if direction == "left":
+            self.panningCursor[1] = max(0, min(self.dimXOriginal-self.dimXViewport,self.panningCursor[1]-shift))
+        if direction == "right":
+            self.panningCursor[1] = max(0, min(self.dimXOriginal-self.dimXViewport,self.panningCursor[1]+shift))
+        print(self.panningCursor)
+
+        self.overlayImageDrawer()
+        self.resetDrawnImage()
+        self.updateDrawerImage()
+
+        
 
     def updateDrawerImage(self):
         cv2.imshow('drawer', cp.asnumpy(self.imgDrawn))
 
     def updateViewerImage(self):
-        self.imgViewer[5,1250:1260,0] = 255
         cv2.imshow('viewer', cp.asnumpy(self.imgViewer))
         if self.counter == 100:
             self.counter = 0
@@ -48,7 +85,18 @@ class ImageSetArrays:
             self.resetFogPercentile -= 1
             if self.resetFogPercentile == 0:
                 self.resetFogPercentile = 100
-        self.imgViewer = f.overlayMaskWeighted(self.fogMask, imgVid, self.imgBase).astype(np.uint8)
+        self.imgViewer = f.overlayMaskWeighted(
+            self.fogMask[self.panningCursor[0]:self.panningCursor[0]+self.dimYViewport,self.panningCursor[1]:self.panningCursor[1]+self.dimXViewport,:], 
+            imgVid, 
+            self.imgBase[self.panningCursor[0]:self.panningCursor[0]+self.dimYViewport,self.panningCursor[1]:self.panningCursor[1]+self.dimXViewport,:]
+            ).astype(np.uint8)
+
+    def overlayImageDrawer(self):
+        self.imgDrawer = f.overlayMask(
+            self.fogMask[self.panningCursor[0]:self.panningCursor[0]+self.dimYViewport,self.panningCursor[1]:self.panningCursor[1]+self.dimXViewport,:],
+            self.imgBaseDark[self.panningCursor[0]:self.panningCursor[0]+self.dimYViewport,self.panningCursor[1]:self.panningCursor[1]+self.dimXViewport,:], 
+            self.imgBase[self.panningCursor[0]:self.panningCursor[0]+self.dimYViewport,self.panningCursor[1]:self.panningCursor[1]+self.dimXViewport,:]
+        )
 
     def resetDrawnImage(self):
         self.imgDrawn = self.imgDrawer.copy()
@@ -74,5 +122,6 @@ class ImageSetArrays:
         print("reset")
         print(self.fogMask[100,100,0])
         self.resetFogPercentile = 99
+
         
     

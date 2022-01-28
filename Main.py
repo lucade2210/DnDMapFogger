@@ -5,17 +5,17 @@ import Controls as c
 import numpy as np
 import cupy as cp
 import time as t
-import cProfile
 
 from ImageSetArrays import ImageSetArrays
 
-location = 'G:\My Drive\D&D\The Double Crescent\Session #2\Maps\*'
+location = 'G:\My Drive\D&D\The Double Crescent\Session #4\Maps\*'
 #location = ''
 
 #Base variables and array declaration
 clickRange = 10
 imageScale = 1
 resolutions = (("1080p", (1920,1080)),("1440p", (2560,1440)),("4k", (3840,2160)))
+panScaling = 1
 chosenResolution = 0
 imageSets = []
 chosenMapCursor = 0
@@ -84,7 +84,7 @@ if __name__ == '__main__':
                         chosenMapCursor += 1
                         if chosenMapCursor == len(imageSets):
                             chosenMapCursor = 0
-                    elif k==44: # . = previous image
+                    elif k==44: # , = previous image
                         chosenMapCursor -= 1
                         if chosenMapCursor == -1:
                             chosenMapCursor = len(imageSets) - 1
@@ -96,6 +96,18 @@ if __name__ == '__main__':
 
                     elif k==113: # q = fade back to full fog
                         imageSets[chosenMapCursor].resetFog()
+
+                    elif k==119: # w = up
+                        imageSets[chosenMapCursor].setPanningCursor("up")
+
+                    elif k==115: # s = down
+                        imageSets[chosenMapCursor].setPanningCursor("down")
+
+                    elif k==97: # a = left
+                        imageSets[chosenMapCursor].setPanningCursor("left")
+
+                    elif k==100: # d = right
+                        imageSets[chosenMapCursor].setPanningCursor("right")
 
                     else:
                         print(k)
