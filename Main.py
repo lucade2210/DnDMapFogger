@@ -6,10 +6,10 @@ import numpy as np
 import cupy as cp
 import time as t
 
-from ImageSetArrays import ImageSetArrays
+from fileLocations import fileLocations
+location = fileLocations.locationLaptop
 
-location = 'G:\My Drive\D&D\The Double Crescent\Session #4\Maps\*'
-#location = ''
+from ImageSetArrays import ImageSetArrays
 
 #Base variables and array declaration
 clickRange = 10
