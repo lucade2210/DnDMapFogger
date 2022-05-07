@@ -17,6 +17,7 @@ class ImageSetArrays:
         self.clickRange = round(self.dimXViewport / 150)
         
         self.isPannable = "pan" in imagePath
+        self.hasNoFog = "noFog" in imagePath
         self.imgOriginal = cv2.imread(imagePath) #OG unedited image
         
         self.dimYOriginal = self.imgOriginal.shape[0]
@@ -34,7 +35,11 @@ class ImageSetArrays:
         self.imgBase = cp.array(self.imgBase)
         self.imgBaseDark = cp.array(self.imgBaseDark)
 
-        self.fogMask = cp.zeros((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
+        if self.hasNoFog == True:
+            self.fogMask = cp.ones((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
+        else:
+            self.fogMask = cp.zeros((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
+            
         randomFile = "Fogs\\" + random.choice(os.listdir("Fogs\\"))
         self.imgFog = cp.array(cv2.resize(cv2.imread(randomFile), self.dimViewport, interpolation = cv2.INTER_AREA)) #fog image
 

@@ -5,9 +5,10 @@ import Controls as c
 import numpy as np
 import cupy as cp
 import time as t
+import os
 
 from fileLocations import fileLocations
-location = fileLocations.locationLaptop
+location = fileLocations.locationDesktop
 
 from ImageSetArrays import ImageSetArrays
 
@@ -39,10 +40,13 @@ if __name__ == '__main__':
     dim = resolutions[chosenResolution][1]
     dimString = resolutions[chosenResolution][0]
     
-    #Open all files in the Maps folder and let the user choose one
+    #Open all files in the Maps folder
     mapNames = []
     fileCounter = 0
-    for file in glob.glob(location):
+    filesAndFolders = sorted(glob.glob(location, recursive=True))
+    print(filesAndFolders)
+    files = [f for f in filesAndFolders if not os.path.isdir(f)]
+    for file in files:
         mapNames.append(file)
         print(str(fileCounter) + ": " + str(file)[5:])
         imageSets.append(ImageSetArrays(dim, mapNames[fileCounter]))
