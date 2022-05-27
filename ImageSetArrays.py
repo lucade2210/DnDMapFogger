@@ -9,7 +9,7 @@ import Functions as f
 
 class ImageSetArrays:
 
-    def __init__(self, dim, imagePath):
+    def __init__(self, dim, imagePath, imgFog):
         self.counter = 100
         self.dimViewport = dim
         self.dimXViewport = self.dimViewport[0]
@@ -19,11 +19,16 @@ class ImageSetArrays:
         self.isPannable = "pan" in imagePath
         self.hasNoFog = "noFog" in imagePath
         self.imgOriginal = cv2.imread(imagePath) #OG unedited image
+        self.imgFog = imgFog
         
         self.dimYOriginal = self.imgOriginal.shape[0]
         self.dimXOriginal = self.imgOriginal.shape[1]
         self.dimOriginal = (self.dimXOriginal, self.dimYOriginal)
         self.panningCursor = [0,0] #Y,X
+
+        self.coordinateList = []
+        self.coordinateListDrawer = []
+        self.resetFogPercentile = 100
 
         if not self.isPannable:
             self.dimYOriginal = self.dimYViewport
@@ -35,27 +40,26 @@ class ImageSetArrays:
         self.imgBase = cp.array(self.imgBase)
         self.imgBaseDark = cp.array(self.imgBaseDark)
 
-        if self.hasNoFog == True:
-            self.fogMask = cp.ones((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
-        else:
-            self.fogMask = cp.zeros((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
-            
-        randomFile = "Fogs\\" + random.choice(os.listdir("Fogs\\"))
-        self.imgFog = cp.array(cv2.resize(cv2.imread(randomFile), self.dimViewport, interpolation = cv2.INTER_AREA)) #fog image
-
-
         self.imgViewer = self.imgFog.copy() #combined image for viewer
         self.imgDrawer = self.imgBaseDark[self.panningCursor[0]:self.panningCursor[0]+self.dimYViewport,self.panningCursor[1]:self.panningCursor[1]+self.dimXViewport,:].copy() #combined image for drawer
         self.imgDrawn = self.imgDrawer.copy() #temp image for drawer with drawn lines
+
+        if self.hasNoFog == True:
+            self.fogMask = cp.ones((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
+            self.overlayFogMaskWithViewerVid(imgFog)
+        else:
+            self.fogMask = cp.zeros((self.dimYOriginal, self.dimXOriginal, 1), cp.uint8) #masking shape arrays
+            
+
+
+        
         #print(self.imgBase.shape)
         #print(self.imgBaseDark.shape)
         #print(self.fogMask.shape)
         #print(self.imgFog.shape)
         #print(self.imgDrawer.shape)
 
-        self.coordinateList = []
-        self.coordinateListDrawer = []
-        self.resetFogPercentile = 100
+        
 
     def setPanningCursor(self,direction):
         shift = 100

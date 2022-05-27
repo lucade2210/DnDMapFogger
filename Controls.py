@@ -14,6 +14,7 @@ def clickPointInDrawer(event, x, y, flags, param):
     lastPosX = param[3]
     lastPosY = param[4]
 
+
     dx = x + imageSetArray.panningCursor[1]
     dy = y + imageSetArray.panningCursor[0]
 
@@ -43,11 +44,14 @@ def clickPointInDrawer(event, x, y, flags, param):
                 if f.checkCoordinatesWithStart(dx, dy, imageSetArray.coordinateList, imageSetArray.clickRange):
                     imageSetArray.fogMask = f.drawShape(imageSetArray.fogMask, imageSetArray.coordinateList)
                     imageSetArray.overlayImageDrawer()
+                    imageSetArray.overlayFogMaskWithViewerVid(imageSetArray.imgFog)
                     imageSetArray.resetDrawnImage()
                     imageSetArray.updateDrawerImage()
                     imageSetArray.updateViewerImage()
                     imageSetArray.coordinateList.clear()
                     imageSetArray.coordinateListDrawer.clear()
+
+
 
                 #If not clicked on starting position, then just simply show the newly drawn line on the drawer layer
                 else:
@@ -85,4 +89,5 @@ def clickPointInDrawer(event, x, y, flags, param):
     param[2] = isDrawing
     param[3] = lastPosX
     param[4] = lastPosY
+
 
