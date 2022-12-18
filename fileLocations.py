@@ -1,4 +1,3 @@
 class fileLocations:
-    locationDesktop = 'G:\My Drive\D&D\Waterdeep Dragon Heist\Session #12\Maps\**\*'
-    locationLaptop = 'G:\\My Drive\\D&D\\Waterdeep Dragon Heist\\Session #11\\Maps\\**\*'
+    location = 'G:\My Drive\D&D\Campaign Waterdeep Dragon Heist\Current Maps\**\*'
     
