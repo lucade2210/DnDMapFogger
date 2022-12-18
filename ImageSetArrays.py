@@ -3,8 +3,6 @@ from re import L
 import cv2
 import numpy as np
 import cupy as cp
-import os
-import random
 import Functions as f
 
 class ImageSetArrays:
