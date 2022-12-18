@@ -54,7 +54,11 @@ if __name__ == '__main__':
     dimString = resolutions[chosenResolution][0]
 
     #Load Wallpaper image for fog
+<<<<<<< HEAD
     imgFog = cp.array(cv2.resize(cv2.imread("Fogs\\DragonHeist.jpg"), dim, interpolation = cv2.INTER_AREA))
+=======
+    imgFog = cp.array(cv2.resize(cv2.imread("Fogs\\Wallpaper.png"), dim, interpolation = cv2.INTER_AREA))
+>>>>>>> 7068371bf391310ee471e5dfc636fab91239c16a
     
     #Open all files in the Maps folder
     mapNames = []
